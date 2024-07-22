@@ -17,15 +17,11 @@ metadata:
   namespace: podtato-kubectl
 spec:
   deno:
-    inline:
-      code: |
-        try {
-              let resp = await fetch(http://podtato-head-frontend.podtato-kubectl.svc.cluster.local:8080);
-          }
-          catch (error){
-              console.error("Could not fetch url");
-              Deno.exit(1);
-          }
+    httpRef:
+      url: https://raw.githubusercontent.com/keptn/lifecycle-toolkit/main/runtimes/deno-runtime/samples/ts/http.ts
+    parameters:
+      map:
+        url: http://podtato-head-frontend.podtato-kubectl.svc.cluster.local:8080
 ---
 # apiVersion: lifecycle.keptn.sh/v1alpha3
 # kind: KeptnApp
@@ -58,6 +54,36 @@ spec:
 #   preDeploymentTasks:
 #     - container-sleep
 #     - python-secret
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - app-pre-deploy.yaml
+  - ../base
+
+patches:
+  - patch: |-
+      - op: add
+        path: /spec/template/metadata/labels/app.kubernetes.io~1version
+        value: 0.1.1
+      - op: add
+        path: /spec/template/metadata/labels/keptn.sh~1pre-deployment-tasks
+        value: pre-deployment-check-frontend
+    target:
+      version: v1
+      kind: Deployment
+      name: podtato-head.*
+  - patch: |-
+      - op: remove
+        path: /spec/template/metadata/labels/keptn.sh~1pre-deployment-tasks
+        value: pre-deployment-check-frontend
+      - op: add
+        path: /spec/template/metadata/labels/app.kubernetes.io~1version
+        value: 0.1.2
+    target:
+      version: v1
+      kind: Deployment
+      name: podtato-head-frontend
 ---
 apiVersion: v1
 kind: Namespace
@@ -76,7 +102,6 @@ spec:
   template:
     metadata:
       labels:
-        keptn.sh/pre-deployment-tasks: pre-deployment-check-frontend
         app.kubernetes.io/version: 0.1.2
         app.kubernetes.io/part-of: podtato-head
 
@@ -90,7 +115,6 @@ spec:
   template:
     metadata:
       labels:
-        keptn.sh/pre-deployment-tasks: pre-deployment-check-frontend
         app.kubernetes.io/version: 0.1.1
         app.kubernetes.io/part-of: podtato-head
 
@@ -104,7 +128,6 @@ spec:
   template:
     metadata:
       labels:
-        keptn.sh/pre-deployment-tasks: pre-deployment-check-frontend
         app.kubernetes.io/version: 0.1.1
         app.kubernetes.io/part-of: podtato-head
 
@@ -118,7 +141,6 @@ spec:
   template:
     metadata:
       labels:
-        keptn.sh/pre-deployment-tasks: pre-deployment-check-frontend
         app.kubernetes.io/version: 0.1.1
         app.kubernetes.io/part-of: podtato-head
 
@@ -132,6 +154,5 @@ spec:
   template:
     metadata:
       labels:
-        keptn.sh/pre-deployment-tasks: pre-deployment-check-frontend
         app.kubernetes.io/version: 0.1.1
         app.kubernetes.io/part-of: podtato-head
