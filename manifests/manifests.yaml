@@ -1,0 +1,137 @@
+# apiVersion: lifecycle.keptn.sh/v1beta1
+# kind: KeptnEvaluationDefinition
+# metadata:
+#   name: app-pre-deploy-eval-2
+#   namespace: podtato-kubectl
+# spec:
+#   objectives:
+#     - keptnMetricRef:
+#         name: available-cpus
+#         namespace: podtato-kubectl
+#       evaluationTarget: ">1"
+# ---
+apiVersion: lifecycle.keptn.sh/v1
+kind: KeptnTaskDefinition
+metadata:
+  name: pre-deployment-check-frontend
+  namespace: podtato-kubectl
+spec:
+  deno:
+    inline:
+      code: |
+        try {
+              let resp = await fetch(http://podtato-head-frontend.podtato-kubectl.svc.cluster.local:8080);
+          }
+          catch (error){
+              console.error("Could not fetch url");
+              Deno.exit(1);
+          }
+---
+# apiVersion: lifecycle.keptn.sh/v1alpha3
+# kind: KeptnApp
+# metadata:
+#   name: podtato-head
+#   namespace: podtato-kubectl
+# spec:
+#   version: "0.1.2"
+#   workloads:
+#     - name: podtato-head-left-arm
+#       version: 0.1.1
+#     - name: podtato-head-frontend
+#       version: 0.1.0
+#     - name: podtato-head-right-arm
+#       version: 0.1.1
+#     - name: podtato-head-hat
+#       version: 0.1.1
+#   preDeploymentEvaluations:
+#     - app-pre-deploy-eval-2
+#   preDeploymentTasks:
+#     - container-sleep
+#     - python-secret
+# ---
+# apiVersion: lifecycle.keptn.sh/v1
+# kind: KeptnAppContext
+# metadata:
+#   name: podtato-head
+#   namespace: podtato-kubectl
+# spec:
+#   preDeploymentTasks:
+#     - container-sleep
+#     - python-secret
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: podtato-kubectl
+  annotations:
+    keptn.sh/lifecycle-toolkit: "enabled"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podtato-head-hat
+  namespace: podtato-kubectl
+spec:
+  template:
+    metadata:
+      labels:
+        keptn.sh/pre-deployment-tasks: pre-deployment-check-frontend
+        app.kubernetes.io/version: 0.1.2
+        app.kubernetes.io/part-of: podtato-head
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podtato-head-left-leg
+  namespace: podtato-kubectl
+spec:
+  template:
+    metadata:
+      labels:
+        keptn.sh/pre-deployment-tasks: pre-deployment-check-frontend
+        app.kubernetes.io/version: 0.1.1
+        app.kubernetes.io/part-of: podtato-head
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podtato-head-right-leg
+  namespace: podtato-kubectl
+spec:
+  template:
+    metadata:
+      labels:
+        keptn.sh/pre-deployment-tasks: pre-deployment-check-frontend
+        app.kubernetes.io/version: 0.1.1
+        app.kubernetes.io/part-of: podtato-head
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podtato-head-left-arm
+  namespace: podtato-kubectl
+spec:
+  template:
+    metadata:
+      labels:
+        keptn.sh/pre-deployment-tasks: pre-deployment-check-frontend
+        app.kubernetes.io/version: 0.1.1
+        app.kubernetes.io/part-of: podtato-head
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podtato-head-right-arm
+  namespace: podtato-kubectl
+spec:
+  template:
+    metadata:
+      labels:
+        keptn.sh/pre-deployment-tasks: pre-deployment-check-frontend
+        app.kubernetes.io/version: 0.1.1
+        app.kubernetes.io/part-of: podtato-head
